@@ -2,8 +2,8 @@ name: Build and Push to GHCR
 
 on:
   push:
-    branches:
-      - main  
+    tags:
+      - "*" 
 
 jobs:
   build-and-push:
@@ -17,12 +17,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4  
 
+      - name: Extract tag version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Set lowercase username
+        run: echo "USERNAME=$(echo $GITHUB_ACTOR | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
       - name: Log in to GitHub Container Registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
 
       - name: Build Docker image (no cache)
-        run: docker build --no-cache -t ghcr.io/$(echo $GITHUB_ACTOR | tr '[:upper:]' '[:lower:]')/nginx:1.26.2 .
-      
+        run: docker build --no-cache -t ghcr.io/${{ env.USERNAME }}/nginx:${{ env.VERSION }} .
+
       - name: Push Docker image to GHCR
-        run: docker push ghcr.io/$(echo $GITHUB_ACTOR | tr '[:upper:]' '[:lower:]')/nginx:1.26.2
-      
+        run: docker push ghcr.io/${{ env.USERNAME }}/nginx:${{ env.VERSION }}
