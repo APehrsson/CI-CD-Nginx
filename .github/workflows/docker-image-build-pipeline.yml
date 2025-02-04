@@ -21,7 +21,8 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
 
       - name: Build Docker image (no cache)
-        run: docker build --no-cache -t ghcr.io/${{ github.actor }} | tr '[:upper:]' '[:lower:]')/nginx:1.26.2 .
-
+        run: docker build --no-cache -t ghcr.io/$(echo $GITHUB_ACTOR | tr '[:upper:]' '[:lower:]')/nginx:1.26.2 .
+      
       - name: Push Docker image to GHCR
-        run: docker push ghcr.io/${{ github.actor }} | tr '[:upper:]' '[:lower:]')/nginx:1.26.2
+        run: docker push ghcr.io/$(echo $GITHUB_ACTOR | tr '[:upper:]' '[:lower:]')/nginx:1.26.2
+      
