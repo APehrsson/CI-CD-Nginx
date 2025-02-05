@@ -59,9 +59,15 @@ jobs:
           kubectl apply -f k8s-deployment.yml
           kubectl get pods -A
 
-      - name: Test application inside GitHub Actions
+      - name: Wait for Nginx pods to be ready
         run: |
-          kubectl port-forward svc/nginx-service 8080:80 &
-          sleep 5
-          curl -I http://localhost:8080
+          echo "Waiting for Nginx pods to be ready..."
+          kubectl wait --for=condition=ready pod -l app=nginx --timeout=60s
+
+      - name: Port-forward Nginx
+        run: kubectl port-forward svc/nginx-service 8080:80 &
+
+      - name: Test application inside GitHub Actions
+        run: curl -I http://localhost:8080
+
     
