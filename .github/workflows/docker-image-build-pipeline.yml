@@ -57,8 +57,19 @@ jobs:
       - name: Generate deployment YAML
         run: |
           envsubst < nginx.deployment.yml > k8s-deployment.yml
-        
-      - name: Apply deployment
+          - name: Debug kubeconfig
+          run: |
+            echo "Checking kubeconfig file..."
+            ls -lah $(pwd)
+            cat $(pwd)/kubeconfig.yaml
+            echo "KUBECONFIG is set to: $KUBECONFIG"
+            export KUBECONFIG=$(pwd)/kubeconfig.yaml
+            kubectl config view
+          
+      - name: Apply Kubernetes Deployment
         run: |
-          kubectl apply -f k8s-deployment.yml --kubeconfig=$(pwd)/kubeconfig.yaml
-        
+          export KUBECONFIG=$(pwd)/kubeconfig.yaml
+          echo "Using KUBECONFIG: $KUBECONFIG"
+          kubectl config view
+          kubectl apply -f k8s-deployment.yml
+          
