@@ -51,6 +51,11 @@ jobs:
           echo "${{ secrets.KUBECONFIG }}" | base64 --decode > kubeconfig.yaml
           export KUBECONFIG=kubeconfig.yaml
 
-      - name: Update Kubernetes Deployment
+      - name: Generate deployment YAML
         run: |
-          kubectl set image deployment/nginx-deployment nginx=ghcr.io/${{ env.USERNAME }}/nginx:${{ env.VERSION }} --kubeconfig=kubeconfig.yaml
+          envsubst < nginx.deployment.yml > k8s-deployment.yml
+        
+      - name: Apply deployment
+        run: |
+          kubectl apply -f k8s-deployment.yml --kubeconfig=~/.kube/config
+        
