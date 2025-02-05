@@ -58,3 +58,10 @@ jobs:
           kubectl cluster-info
           kubectl apply -f k8s-deployment.yml
           kubectl get pods -A
+
+      - name: Test application inside GitHub Actions
+        run: |
+          kubectl port-forward svc/nginx-service 8080:80 &
+          sleep 5
+          curl -I http://localhost:8080
+    
