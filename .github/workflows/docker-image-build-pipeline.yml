@@ -50,6 +50,7 @@ jobs:
       - name: Configure Kubernetes (kubectl)
         run: |
           echo "${{ secrets.KUBECONFIG }}" | base64 --decode > kubeconfig.yaml
+          export KUBECONFIG=$(pwd)/kubeconfig.yaml
           echo "KUBECONFIG=$(pwd)/kubeconfig.yaml" >> $GITHUB_ENV
       
 
@@ -59,5 +60,5 @@ jobs:
         
       - name: Apply deployment
         run: |
-          kubectl apply -f k8s-deployment.yml
+          kubectl apply -f k8s-deployment.yml --kubeconfig=$(pwd)/kubeconfig.yaml
         
