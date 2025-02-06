@@ -14,7 +14,7 @@ spec:
     spec: 
       containers:
         - name: nginx
-          image: ghcr.io/${USERNAME}/nginx:${VERSION}  
+          image: ghcr.io/${{ env.USERNAME }}/nginx:${{ env.VERSION }}  
           ports:
             - containerPort: 80
 
