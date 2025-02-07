@@ -1,0 +1,78 @@
+- name: Rolling update for Kubernetes deployment
+  hosts: localhost
+  gather_facts: no
+  tasks:
+
+    - name: Set variables
+      set_fact:
+        deployment_name: "nginx-deployment"
+        namespace: "default"
+        new_image: "ghcr.io/apehrsson/nginx:latest"
+
+    - name: Get current deployment details
+      kubernetes.core.k8s_info:
+        api_version: apps/v1
+        kind: Deployment
+        name: "{{ deployment_name }}"
+        namespace: "{{ namespace }}"
+      register: deployment_info
+
+    - name: Extract current image
+      set_fact:
+        current_image: "{{ deployment_info.resources[0].spec.template.spec.containers[0].image }}"
+
+    - name: Check if update is needed
+      set_fact:
+        update_needed: "{{ current_image != new_image }}"
+
+    - name: Deploy new image version
+      when: update_needed
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: "{{ deployment_name }}"
+            namespace: "{{ namespace }}"
+          spec:
+            template:
+              spec:
+                containers:
+                  - name: nginx
+                    image: "{{ new_image }}"
+      register: update_result
+
+    - name: Wait for rollout to complete
+      when: update_needed
+      shell: kubectl rollout status deployment/{{ deployment_name }} -n {{ namespace }}
+      register: rollout_status
+      failed_when: "'successfully rolled out' not in rollout_status.stdout"
+
+    - name: Rollback if deployment fails
+      when: update_needed and (update_result.failed or rollout_status.failed)
+      block:
+        - name: Rollback to previous version
+          kubernetes.core.k8s:
+            state: present
+            definition:
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: "{{ deployment_name }}"
+                namespace: "{{ namespace }}"
+              spec:
+                template:
+                  spec:
+                    containers:
+                      - name: nginx
+                        image: "{{ current_image }}"
+
+        - name: Print rollback message
+          debug:
+            msg: "Deployment failed, rolled back to {{ current_image }}"
+
+    - name: Print no update needed message
+      when: not update_needed
+      debug:
+        msg: "Deployment already running the latest image ({{ new_image }}), no update performed."
