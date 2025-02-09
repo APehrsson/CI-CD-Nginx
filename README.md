@@ -74,7 +74,4 @@ curl http://<NODE_IP>:30080
 
 If the deployment fails, the playbook automatically rolls back to the previous image version.
 
-## License
-
-This project is licensed under the MIT License.
 
