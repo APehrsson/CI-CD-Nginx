@@ -24,13 +24,13 @@ The GitHub Actions workflow triggers on new tags. To build and push a new image:
 
 ```sh
 # Tag the repository and push
-git tag v1.0.0
-git push origin v1.0.0
+git tag v5.0.0
+git push origin v5.0.0
 ```
 
 This runs the workflow, which:
 1. Extracts the tag version.
-2. Builds a Docker image with `nginx:latest`.
+2. Builds a Docker image with `nginx:1.26.3`. 
 3. Pushes the image to GHCR.
 
 ### 2. Deploy to Kubernetes
@@ -43,7 +43,7 @@ kubectl apply -f nginx-deployment.yml
 
 ### 3. Perform a Rolling Update
 
-Run the Ansible playbook to update the deployment:
+Change "selected_version" to your desired version in the playbook and then run the Ansible playbook to update the deployment:
 
 ```sh
 ansible-playbook deploy-playbook.yml
@@ -67,7 +67,7 @@ kubectl get pods
 Test the service:
 
 ```sh
-curl http://<NODE_IP>:30080
+minikube service service-name
 ```
 
 ## Rollback
