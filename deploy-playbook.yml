@@ -1,13 +1,23 @@
 - name: Rolling update for Kubernetes deployment
   hosts: localhost
   gather_facts: no
+  vars:
+    selected_version: ""  # Ange en specifik version här, t.ex. "v3.0.0", eller lämna tomt för att automatiskt hämta senaste taggen.
+
   tasks:
 
-    - name: Set variables
+    - name: Get latest annotated Git tag
+      shell: git describe --tags --abbrev=0
+      register: git_tag
+      when: selected_version == ""
+      ignore_errors: yes 
+
+    - name: Set version variable
       set_fact:
+        app_version: "{{ selected_version if selected_version != '' else git_tag.stdout | default('latest', true) }}"
         deployment_name: "nginx-deployment"
         namespace: "default"
-        new_image: "ghcr.io/apehrsson/nginx:latest"
+        new_image: "ghcr.io/apehrsson/nginx:{{ app_version }}"
 
     - name: Get current deployment details
       kubernetes.core.k8s_info:
